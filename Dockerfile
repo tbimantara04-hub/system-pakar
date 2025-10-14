@@ -7,7 +7,7 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV PATH="/root/.composer/vendor/bin:\$PATH"
 
 # Instal dependensi sistem yang diperlukan untuk PHP extensions dan Git
-# mariadb-client-dev diperlukan untuk pdo_mysql
+# mariadb-client-dev diperlukan untuk pdo_mysql, libxml2-dev diperlukan untuk xml dan mbstring
 RUN apk add --no-cache \
     git \
     curl \
@@ -15,6 +15,7 @@ RUN apk add --no-cache \
     libzip-dev \
     libpng-dev \
     mariadb-client-dev \
+    libxml2-dev \
     npm
 
 # Instal Composer secara global
