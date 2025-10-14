@@ -22,5 +22,5 @@ RUN composer install --no-dev --optimize-autoloader
 # Expose port Railway
 EXPOSE 8080
 
-# Jalankan PHP built-in web server (Railway akan set PORT)
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+# Jalankan PHP built-in server langsung
+CMD ["php", "-S", "0.0.0.0:${PORT}", "-t", "public"]
