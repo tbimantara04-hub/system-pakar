@@ -1,20 +1,26 @@
-# Gunakan image PHP 8.2.12 FPM (Pastikan image ini ada di Docker Hub)
-FROM php:8.2.12-fpm-alpine 
+# Gunakan image PHP 8.2.12
+FROM php:8.2.12-alpine
 
-# Instal dependensi dan extensions
+# Install dependencies
 RUN apk add --no-cache git curl build-base
+
+# Install PHP extensions
 RUN docker-php-ext-install pdo_mysql opcache
 
-# Set direktori kerja
+# Set workdir
 WORKDIR /app
 
-# Salin aplikasi
+# Copy aplikasi
 COPY . /app
 
-# Instal Composer dependencies
+# Copy composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# (Lanjutkan dengan konfigurasi Web Server seperti Nginx atau Caddy jika perlu)
-# Railway biasanya memerlukan instruksi entrypoint/CMD yang menjalankan server Anda
-# ...
+# Expose port Railway
+EXPOSE 8080
+
+# Jalankan PHP built-in web server (Railway akan set PORT)
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
