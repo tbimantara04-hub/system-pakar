@@ -202,7 +202,7 @@ class ServeCommand extends Command
 
         $port = $port ?: 8000;
 
-        return (int) $port + $this->portOffset;
+        return (int) $port + (int) $this->portOffset;
 
     }
 
