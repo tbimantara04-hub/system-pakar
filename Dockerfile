@@ -1,63 +1,94 @@
-# Gunakan base image yang lebih stabil dan sesuai dengan versi PHP Anda
-FROM php:8.2.12-fpm-alpine
+# --- STAGE 1: BUILDER STAGE ---
+# Tahap ini digunakan untuk menginstal composer dependencies dan meng-compile aset front-end (jika ada)
+FROM php:8.2.12-fpm-alpine AS builder
 
-# --- 1. INSTALASI DEPENDENSI SISTEM ---
-# Instal dependensi sistem yang diperlukan untuk PHP extensions dan composer
-# Juga instal 'supervisor' jika Anda membutuhkan queue worker (opsional, dihapus untuk kesederhanaan)
-RUN apk update && apk add --no-cache \
+# Variabel Lingkungan
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV PATH="/root/.composer/vendor/bin:\$PATH"
+
+# Instal dependensi sistem yang diperlukan untuk PHP extensions dan Git
+# mariadb-client-dev diperlukan untuk pdo_mysql
+RUN apk add --no-cache \
     git \
     curl \
     build-base \
-    # Tambahkan dependensi untuk ekstensi yang umum digunakan Laravel:
-    mysql-client \
-    libxml2-dev \
-    oniguruma-dev \
-    $PHPIZE_DEPS
+    libzip-dev \
+    libpng-dev \
+    mariadb-client-dev \
+    npm
 
-# --- 2. INSTALASI EKSTENSI PHP ---
-# Instal ekstensi yang disyaratkan oleh Laravel dan proyek Anda
+# Instal Composer secara global
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Instal PHP extensions yang diperlukan oleh Laravel
 RUN docker-php-ext-install -j$(nproc) \
     pdo_mysql \
+    pdo \
     opcache \
     mbstring \
     tokenizer \
-    xml
+    xml \
+    zip \
+    gd
 
-# Bersihkan cache APK
-RUN rm -rf /var/cache/apk/*
-
-# --- 3. KONFIGURASI DAN COPY FILE ---
+# Set working directory ke /app
 WORKDIR /app
 
-# Salin script entrypoint (Entrypoint ini yang akan menjalankan migrasi!)
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Salin composer.json dan composer.lock untuk layer cache Composer
+COPY composer.json composer.lock ./
 
-# Salin composer, menggunakan multi-stage build untuk menghemat ukuran image
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Salin seluruh kode aplikasi
-COPY . /app
-
-# --- 4. INSTALASI DEPENDENSI KOMPOSER ---
-# Instal dependensi PHP. Gunakan 'prefer-dist' untuk kecepatan.
+# Instal Composer Dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# --- 5. PERMISSION DAN USER NON-ROOT ---
-# Buat user non-root (www-data) dan ubah permission storage/bootstrap
-RUN chown -R www-data:www-data /app \
-    && chmod -R 775 /app/storage \
-    && chmod -R 775 /app/bootstrap/cache
+# Salin sisa kode aplikasi
+COPY . .
 
-USER www-data
+# Run NPM build (Hanya jika Anda menggunakan aset front-end seperti Vue/React/Tailwind)
+# Jika tidak menggunakan aset front-end, baris ini bisa dihilangkan
+RUN if [ -f package.json ]; then \
+    npm install && npm run build; \
+    fi
 
-# --- 6. COMMAND DOCKER ---
-# Expose port (meskipun Railway seringkali mengabaikan ini dan menggunakan $PORT)
+
+# --- STAGE 2: PRODUCTION STAGE ---
+# Tahap ini adalah image yang akan benar-benar dijalankan (runtime)
+# Kami hanya menyalin apa yang dibutuhkan dari builder stage (Kode, Vendor, Aset)
+FROM php:8.2.12-fpm-alpine
+
+# Instal hanya dependensi runtime yang diperlukan
+RUN apk add --no-cache \
+    mariadb-client \
+    git \
+    tzdata
+
+# Set timezone untuk PHP
+RUN ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+# Buat user non-root untuk alasan keamanan
+RUN addgroup -g 1000 laravel && \
+    adduser -u 1000 -G laravel -s /bin/sh -D laravel
+
+# Set working directory
+WORKDIR /app
+
+# Salin semua file dari builder stage
+# --chown=laravel:laravel memastikan file dimiliki oleh user non-root
+COPY --from=builder --chown=laravel:laravel /app /app
+
+# Pastikan Laravel dapat menulis ke storage dan cache
+RUN chmod -R 775 /app/storage \
+    && chown -R laravel:laravel /app/storage \
+    && chmod -R 775 /app/bootstrap/cache \
+    && chown -R laravel:laravel /app/bootstrap/cache
+
+# Menggunakan user non-root (laravel) untuk menjalankan aplikasi
+USER laravel
+
+# EXPOSE port yang akan didengarkan oleh php artisan serve
 EXPOSE 8000
 
-# ENTRYPOINT menjalankan script setup (migrasi, key generate)
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Entrypoint mengacu pada script yang Anda buat
+ENTRYPOINT ["/app/entrypoint.sh"]
 
-# CMD menyediakan default port jika variabel lingkungan tidak disetel, tetapi entrypoint.sh menanganinya.
-# Kami biarkan CMD kosong karena entrypoint.sh sudah menggunakan 'exec php artisan serve'
+# CMD default hanya menjalankan entrypoint
 CMD []
