@@ -15,12 +15,14 @@ RUN apk add --no-cache \
     libzip-dev \
     libpng-dev \
     mariadb-client-dev \
-    libxml2-dev \
-    npm
+    libxml2-dev
+    
+# Instal Node/NPM secara terpisah, yang diperlukan untuk aset front-end (Vite/Mix)
+RUN apk add --no-cache npm
 
 # Instal Composer secara global
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
+# ... (sisa Dockerfile tetap sama)
 # Instal PHP extensions yang diperlukan oleh Laravel
 RUN docker-php-ext-install -j$(nproc) \
     pdo_mysql \
