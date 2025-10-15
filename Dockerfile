@@ -4,18 +4,20 @@ FROM php:8.2-fpm-alpine AS builder
 
 # Variabel Lingkungan
 ENV COMPOSER_ALLOW_SUPERUSER 1
-ENV PATH="/root/.composer/vendor/bin:\$PATH"
+ENV PATH="/root/.composer/vendor/bin:$PATH"
 
 # Instal dependensi sistem yang diperlukan untuk kompilasi PHP extensions, Git, dan Node.
-# Menggabungkan instalasi paket kompilasi (.dev) dan paket dasar (git, curl).
-RUN apk add --no-cache \
+# Pertama, update repository untuk menghindari error paket tidak ditemukan.
+RUN apk update && apk add --no-cache \
     git \
     curl \
     build-base \
     libzip-dev \
     libpng-dev \
-    mariadb-client-dev \
-    libxml2-dev
+    libxml2-dev  # Paket ini seharusnya baik
+
+# Instal paket dev untuk MariaDB (ganti mariadb-client-dev dengan mariadb-dev)
+RUN apk add --no-cache mariadb-dev
 
 # Instal Node/NPM secara terpisah (disarankan untuk Alpine)
 # Ini diperlukan jika Anda menjalankan 'npm run build' untuk aset front-end (Vite/Mix).
@@ -59,7 +61,7 @@ FROM php:8.2-fpm-alpine
 
 # Instal hanya dependensi runtime yang diperlukan
 RUN apk add --no-cache \
-    mariadb-client \
+    mariadb-client \  # Ini untuk runtime, bukan dev
     git \
     tzdata
 
