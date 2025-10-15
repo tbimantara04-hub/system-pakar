@@ -1,13 +1,13 @@
 # --- STAGE 1: BUILDER STAGE ---
-# Tahap ini digunakan untuk menginstal composer dependencies dan meng-compile aset front-end (jika ada)
-FROM php:8.2.12-fpm-alpine AS builder
+# Menggunakan base image 8.2-fpm-alpine yang lebih stabil.
+FROM php:8.2-fpm-alpine AS builder
 
 # Variabel Lingkungan
 ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV PATH="/root/.composer/vendor/bin:\$PATH"
 
-# Instal dependensi sistem yang diperlukan untuk PHP extensions dan Git
-# mariadb-client-dev diperlukan untuk pdo_mysql, libxml2-dev diperlukan untuk xml dan mbstring
+# Instal dependensi sistem yang diperlukan untuk kompilasi PHP extensions, Git, dan Node.
+# Menggabungkan instalasi paket kompilasi (.dev) dan paket dasar (git, curl).
 RUN apk add --no-cache \
     git \
     curl \
@@ -16,13 +16,14 @@ RUN apk add --no-cache \
     libpng-dev \
     mariadb-client-dev \
     libxml2-dev
-    
-# Instal Node/NPM secara terpisah, yang diperlukan untuk aset front-end (Vite/Mix)
-RUN apk add --no-cache npm
+
+# Instal Node/NPM secara terpisah (disarankan untuk Alpine)
+# Ini diperlukan jika Anda menjalankan 'npm run build' untuk aset front-end (Vite/Mix).
+RUN apk add --no-cache nodejs npm
 
 # Instal Composer secara global
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-# ... (sisa Dockerfile tetap sama)
+
 # Instal PHP extensions yang diperlukan oleh Laravel
 RUN docker-php-ext-install -j$(nproc) \
     pdo_mysql \
@@ -34,29 +35,27 @@ RUN docker-php-ext-install -j$(nproc) \
     zip \
     gd
 
-# Set working directory ke /app
+# Set working directory
 WORKDIR /app
 
 # Salin composer.json dan composer.lock untuk layer cache Composer
 COPY composer.json composer.lock ./
 
 # Instal Composer Dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Salin sisa kode aplikasi
 COPY . .
 
-# Run NPM build (Hanya jika Anda menggunakan aset front-end seperti Vue/React/Tailwind)
-# Jika tidak menggunakan aset front-end, baris ini bisa dihilangkan
+# Run NPM build (Hanya jika Anda menggunakan Vite/Mix/Tailwind)
 RUN if [ -f package.json ]; then \
     npm install && npm run build; \
     fi
 
 
 # --- STAGE 2: PRODUCTION STAGE ---
-# Tahap ini adalah image yang akan benar-benar dijalankan (runtime)
-# Kami hanya menyalin apa yang dibutuhkan dari builder stage (Kode, Vendor, Aset)
-FROM php:8.2.12-fpm-alpine
+# Image runtime yang ringan untuk produksi
+FROM php:8.2-fpm-alpine
 
 # Instal hanya dependensi runtime yang diperlukan
 RUN apk add --no-cache \
@@ -64,10 +63,10 @@ RUN apk add --no-cache \
     git \
     tzdata
 
-# Set timezone untuk PHP
+# Set timezone ke Asia/Jakarta
 RUN ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
-# Buat user non-root untuk alasan keamanan
+# Buat user non-root untuk keamanan
 RUN addgroup -g 1000 laravel && \
     adduser -u 1000 -G laravel -s /bin/sh -D laravel
 
@@ -87,7 +86,7 @@ RUN chmod -R 775 /app/storage \
 # Menggunakan user non-root (laravel) untuk menjalankan aplikasi
 USER laravel
 
-# EXPOSE port yang akan didengarkan oleh php artisan serve
+# EXPOSE port yang akan didengarkan oleh php artisan serve (port default Laravel)
 EXPOSE 8000
 
 # Entrypoint mengacu pada script yang Anda buat
