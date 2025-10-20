@@ -4,28 +4,21 @@ services:
     env: php
     buildCommand: |
       composer install --no-dev --no-interaction
-      php artisan key:generate --force # Sebenarnya ini tidak perlu jika Anda set APP_KEY di dashboard
       php artisan config:cache
       php artisan route:cache
       php artisan view:cache
       php artisan migrate --force
     startCommand: php artisan serve --host 0.0.0.0 --port $PORT
-    
-    # TAMBAHKAN BAGIAN INI:
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
       - key: LOG_LEVEL
-        value: error # Hanya catat error di produksi
-        
-      # PENTING: Jangan gunakan 'file' untuk session di Render
-      - key: SESSION_DRIVER 
-        value: database # Gunakan database untuk menyimpan sesi
+        value: error
+      - key: SESSION_DRIVER
+        value: database
       - key: CACHE_DRIVER
-        value: database # Gunakan database untuk cache
-        
-      # Render akan mengatur URL ini secara otomatis
-      - key: APP_URL 
+        value: database
+      - key: APP_URL
         value: $RENDER_EXTERNAL_URL
