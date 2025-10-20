@@ -4,9 +4,9 @@ services:
     runtime: docker 
     dockerfilePath: Dockerfile 
     envVars:
-# --- WAJIB DIISI DARI LOKAL ---
+      # --- WAJIB DIISI DARI LOKAL ---
       - key: APP_KEY
-        value: base64:TxdeOXqxxnI7eynAJT/935Qy2wRDbiu3UJtw9Ib+QDU= 
+        value: "base64:TxdeOXqxxnI7eynAJT/935Qy2wRDbiu3UJtw9Ib+QDU=" 
 
       # --- Konfigurasi Dasar ---
       - key: APP_ENV
@@ -22,20 +22,22 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
-        value: dpg-d3qpgagdl3ps73c4t9mg-a
+        value: "dpg-d3qpgagdl3ps73c4t9mg-a"
       - key: DB_PORT
         value: 5432
       - key: DB_DATABASE
-        value: database_project_d21
+        value: "database_project_d21"
       - key: DB_USERNAME
-        value: database_project_d21_user
+        value: "database_project_d21_user"
       - key: DB_PASSWORD
-        value: e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI
+        value: "e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI"
 
       # --- Pengaturan Bawaan Anda ---
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_DRIVER
         value: database
-    # PASTIKAN HANYA INI:
+        
+    # --- INDENTASI SUDAH DIPERBAIKI ---
+    # Perintah ini sekarang berada DI DALAM layanan web
     preDeployCommand: "php artisan migrate --force"
