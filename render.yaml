@@ -16,3 +16,4 @@ services:
         value: database
       - key: APP_URL
         value: $RENDER_EXTERNAL_URL
+    preDeployCommand: "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force"
