@@ -7,6 +7,10 @@ services:
       # ... (semua envVars Anda yang lain biarkan saja) ...
       - key: APP_URL
         value: $RENDER_EXTERNAL_URL
+
+        # TAMBAHKAN BARIS INI:
+      - key: LOG_CHANNEL
+        value: stderr
         
     # PASTIKAN HANYA INI:
     preDeployCommand: "php artisan migrate --force"
