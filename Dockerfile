@@ -25,6 +25,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY composer.json composer.lock ./
 
 # 4. Install dependencies TAPI JANGAN JALANKAN SCRIPT (seperti artisan)
+# INI ADALAH PERBAIKANNYA: --no-scripts
 RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
 
 # 5. Salin sisa file aplikasi (SEKARANG artisan SUDAH ADA)
