@@ -1,19 +1,12 @@
 services:
   - type: web
     name: system-pakar-app
-    runtime: docker  # Diperbaiki: Gunakan Docker untuk PHP
-    dockerfilePath: Dockerfile  # Path ke Dockerfile (opsional jika di root)
+    runtime: docker 
+    dockerfilePath: Dockerfile 
     envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: false
-      - key: LOG_LEVEL
-        value: error
-      - key: SESSION_DRIVER
-        value: database
-      - key: CACHE_DRIVER
-        value: database
+      # ... (semua envVars Anda yang lain biarkan saja) ...
       - key: APP_URL
         value: $RENDER_EXTERNAL_URL
-    preDeployCommand: "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force"
+        
+    # UBAH BARIS INI:
+    preDeployCommand: "php artisan migrate --force"

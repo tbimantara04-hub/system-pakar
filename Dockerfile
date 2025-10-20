@@ -5,9 +5,6 @@ FROM php:8.2-apache
 WORKDIR /var/www/html
 
 # 1. Install semua dependencies sistem
-# - ekstensi GD (libpng, libjpeg, libfreetype)
-# - ekstensi PostgreSQL (libpq-dev)
-# - utility (zip, unzip, curl)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -20,28 +17,33 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Install Composer (Manajemen package PHP)
+# 2. Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# 3. Optimasi layer caching Docker
+# 3. Optimasi layer caching
 # Salin HANYA file composer dulu
 COPY composer.json composer.lock ./
 
-# Install dependencies. Jika file composer tidak berubah, Docker akan menggunakan cache
-RUN composer install --no-dev --no-interaction --optimize-autoloader
+# 4. Install dependencies TAPI JANGAN JALANKAN SCRIPT (seperti artisan)
+RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
 
-# 4. Salin sisa file aplikasi
+# 5. Salin sisa file aplikasi (SEKARANG artisan SUDAH ADA)
 COPY . .
 
-# 5. Atur Apache agar menunjuk ke folder /public Laravel
+# 6. Jalankan artisan cache (ini aman dilakukan di dalam build image)
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# 7. Atur Apache agar menunjuk ke folder /public Laravel
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && a2enmod rewrite
 
-# 6. Atur kepemilikan file agar Apache (www-data) bisa menulis ke folder storage
+# 8. Atur kepemilikan file agar Apache (www-data) bisa menulis ke folder storage
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 7. Expose port 80 (Apache)
+# 9. Expose port 80 (Apache)
 EXPOSE 80
 
-# 8. Perintah untuk menjalankan server
+# 10. Perintah untuk menjalankan server
 CMD ["apache2-foreground"]
