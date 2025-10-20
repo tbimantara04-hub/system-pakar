@@ -4,13 +4,38 @@ services:
     runtime: docker 
     dockerfilePath: Dockerfile 
     envVars:
-      # ... (semua envVars Anda yang lain biarkan saja) ...
+# --- WAJIB DIISI DARI LOKAL ---
+      - key: APP_KEY
+        value: base64:TxdeOXqxxnI7eynAJT/935Qy2wRDbiu3UJtw9Ib+QDU= 
+
+      # --- Konfigurasi Dasar ---
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
       - key: APP_URL
         value: $RENDER_EXTERNAL_URL
-
-        # TAMBAHKAN BARIS INI:
       - key: LOG_CHANNEL
         value: stderr
-        
+
+      # --- WAJIB DIISI DARI DATABASE RENDER ---
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: dpg-d3qpgagdl3ps73c4t9mg-a
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: database_project_d21
+      - key: DB_USERNAME
+        value: database_project_d21_user
+      - key: DB_PASSWORD
+        value: database_project_d21_user
+
+      # --- Pengaturan Bawaan Anda ---
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_DRIVER
+        value: database
     # PASTIKAN HANYA INI:
     preDeployCommand: "php artisan migrate --force"
