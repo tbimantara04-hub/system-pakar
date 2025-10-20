@@ -30,7 +30,7 @@ services:
       - key: DB_USERNAME
         value: database_project_d21_user
       - key: DB_PASSWORD
-        value: database_project_d21_user
+        value: e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI
 
       # --- Pengaturan Bawaan Anda ---
       - key: SESSION_DRIVER
