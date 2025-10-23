@@ -1,14 +1,16 @@
 services:
   - type: web
+    # 'name' memiliki 4 spasi indentasi
     name: system-pakar-app
+    # 'runtime' memiliki 4 spasi indentasi
     runtime: docker 
+    # 'dockerfilePath' memiliki 4 spasi indentasi
     dockerfilePath: Dockerfile 
+    # 'envVars' memiliki 4 spasi indentasi
     envVars:
-      # --- WAJIB DIISI DARI LOKAL ---
+      # 'key' memiliki 6 spasi indentasi
       - key: APP_KEY
         value: "base64:TxdeOXqxxnI7eynAJT/935Qy2wRDbiu3UJtw9Ib+QDU=" 
-
-      # --- Konfigurasi Dasar ---
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
@@ -17,8 +19,6 @@ services:
         value: $RENDER_EXTERNAL_URL
       - key: LOG_CHANNEL
         value: stderr
-
-      # --- WAJIB DIISI DARI DATABASE RENDER ---
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -30,14 +30,12 @@ services:
       - key: DB_USERNAME
         value: "database_project_d21_user"
       - key: DB_PASSWORD
-        value: "e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI" # <-- Saya asumsikan ini sudah benar
-
-      # --- Pengaturan Bawaan Anda ---
+        value: "e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI"
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_DRIVER
         value: database
         
-    # --- INI ADALAH PERBAIKANNYA ---
-    # Indentasi (spasi) ini harus sejajar dengan 'name', 'runtime', 'envVars'
+    # 'preDeployCommand' HARUS memiliki 4 spasi indentasi
+    # Ini harus sejajar dengan 'name', 'runtime', dan 'envVars'
     preDeployCommand: "php artisan migrate --force"
