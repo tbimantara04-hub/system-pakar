@@ -36,6 +36,5 @@ services:
       - key: CACHE_DRIVER
         value: database
         
-    # --- PERINTAH BARU UNTUK MEMULAI SERVER ---
-    # Ini menggantikan preDeployCommand
-    startCommand: "./entrypoint.sh"
+    # 'startCommand' dan 'preDeployCommand' sudah dihapus
+    # Dockerfile akan mengurus semuanya

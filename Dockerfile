@@ -21,17 +21,15 @@ RUN apt-get update && apt-get install -y \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # 3. Optimasi layer caching
-# Salin HANYA file composer dulu
 COPY composer.json composer.lock ./
 
 # 4. Install dependencies TAPI JANGAN JALANKAN SCRIPT (seperti artisan)
-# INI ADALAH PERBAIKANNYA: --no-scripts
 RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
 
-# 5. Salin sisa file aplikasi (SEKARANG artisan SUDAH ADA)
+# 5. Salin sisa file aplikasi
 COPY . .
 
-# 6. Jalankan artisan cache (ini aman dilakukan di dalam build image)
+# 6. Jalankan artisan cache
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
@@ -40,11 +38,19 @@ RUN php artisan config:cache \
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && a2enmod rewrite
 
-# 8. Atur kepemilikan file agar Apache (www-data) bisa menulis ke folder storage
+# 8. Atur kepemilikan file
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 9. Expose port 80 (Apache)
 EXPOSE 80
 
-# 10. Perintah untuk menjalankan server
-CMD ["apache2-foreground"]
+# --- PERUBAHAN DI SINI ---
+# 10. Salin entrypoint.sh ke dalam image
+COPY entrypoint.sh .
+
+# 11. Buat agar bisa dieksekusi
+RUN chmod +x ./entrypoint.sh
+
+# 12. Hapus CMD lama dan setel entrypoint baru
+# CMD ["apache2-foreground"] # <-- HAPUS/Komentari baris ini
+ENTRYPOINT ["./entrypoint.sh"]
