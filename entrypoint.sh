@@ -3,12 +3,14 @@
 # Hentikan skrip jika ada perintah yang gagal
 set -e
 
-# Hapus cache lama & buat cache baru menggunakan Env Vars dari Render
-echo "===== (ENTRYPOINT) MEMBERSIHKAN DAN MEMBUAT CACHE KONFIGURASI ====="
+# Hapus cache konfigurasi agar Laravel membaca envVars dari Render
+echo "===== (ENTRYPOINT) MEMBERSIHKAN CACHE KONFIGURASI ====="
 php artisan config:clear
-php artisan config:cache
+# Kita juga bersihkan cache lain untuk jaga-jaga
+php artisan route:clear
+php artisan view:clear
 
-# Menjalankan migrasi database (sekarang akan menggunakan pgsql)
+# Menjalankan migrasi database (sekarang akan membaca envVars yg benar)
 echo "===== (ENTRYPOINT) MENJALANKAN MIGRATION DATABASE ====="
 php artisan migrate --force
 

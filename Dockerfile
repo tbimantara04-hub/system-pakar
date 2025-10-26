@@ -29,10 +29,6 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader --no-script
 # 5. Salin sisa file aplikasi
 COPY . .
 
-# 6. Jalankan artisan cache (config cache dipindah ke entrypoint)
-RUN php artisan route:cache \
-    && php artisan view:cache
-
 # 7. Atur Apache agar menunjuk ke folder /public Laravel
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && a2enmod rewrite
