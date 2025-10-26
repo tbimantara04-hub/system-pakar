@@ -29,9 +29,8 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader --no-script
 # 5. Salin sisa file aplikasi
 COPY . .
 
-# 6. Jalankan artisan cache
-RUN php artisan config:cache \
-    && php artisan route:cache \
+# 6. Jalankan artisan cache (config cache dipindah ke entrypoint)
+RUN php artisan route:cache \
     && php artisan view:cache
 
 # 7. Atur Apache agar menunjuk ke folder /public Laravel
