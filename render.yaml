@@ -38,4 +38,4 @@ services:
         
     # 'preDeployCommand' HARUS memiliki 4 spasi indentasi
     # Ini harus sejajar dengan 'name', 'runtime', dan 'envVars'
-    preDeployCommand: "php artisan migrate --force"
+    preDeployCommand: "echo '===== TES PREDEPLOY COMMAND SAYA BERJALAN ====='"
