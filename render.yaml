@@ -4,37 +4,26 @@ services:
     runtime: docker 
     dockerfilePath: Dockerfile 
     envVars:
-      # --- Kunci & Konfigurasi Anda ---
+      # --- HANYA VARIABEL INI YANG DIPERLUKAN SEKARANG ---
       - key: APP_KEY
         value: "base64:TxdeOXqxxnI7eynAJT/935Qy2wRDbiu3UJtw9Ib+QDU=" 
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
-        value: "false"
+        value: "false" # Pastikan ini false untuk production
       - key: APP_URL
         value: $RENDER_EXTERNAL_URL
       - key: LOG_CHANNEL
         value: stderr
       
-      # --- Database Anda ---
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_HOST
-        value: "dpg-d3qpgagdl3ps73c4t9mg-a"
-      - key: DB_PORT
-        value: 5432
-      - key: DB_DATABASE
-        value: "database_project_d21"
-      - key: DB_USERNAME
-        value: "database_project_d21_user"
-      - key: DB_PASSWORD
-        value: "e1MMspcuA4OIibCsBS4ZsvzB6ymdcYnI"
-      
+      # --- VARIABEL DB SUDAH DIHAPUS ---
+      # Render akan menyediakan DATABASE_URL secara otomatis
+
       # --- Pengaturan Bawaan Anda ---
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_DRIVER
         value: database
         
-    # 'startCommand' dan 'preDeployCommand' sudah dihapus
-    # Dockerfile akan mengurus semuanya
+    # Start command tetap menggunakan entrypoint
+    startCommand: "./entrypoint.sh"
