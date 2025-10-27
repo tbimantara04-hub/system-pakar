@@ -4,17 +4,17 @@
 set -e
 
 # --- LANGKAH DEBUGGING ---
-# Cetak semua environment variable yang diterima skrip ini
-echo "===== (ENTRYPOINT) DEBUGGING ENV VARS ====="
-env | grep DB_ # Tampilkan hanya variabel DB_ untuk mempermudah
-echo "===== (ENTRYPOINT) SELESAI DEBUGGING ENV VARS ====="
+# Cetak SEMUA environment variable yang diterima skrip ini
+echo "===== (ENTRYPOINT) DEBUGGING SEMUA ENV VARS ====="
+env
+echo "===== (ENTRYPOINT) SELESAI DEBUGGING SEMUA ENV VARS ====="
 # --- AKHIR LANGKAH DEBUGGING ---
 
-# HAPUS file .env yang ter-copy dari lokal agar tidak menimpa envVars Render
+# HAPUS file .env yang ter-copy dari lokal
 echo "===== (ENTRYPOINT) MENGHAPUS FILE .env LOKAL (jika ada) ====="
 rm -f .env
 
-# Hapus cache konfigurasi agar Laravel membaca envVars dari Render
+# Hapus cache konfigurasi
 echo "===== (ENTRYPOINT) MEMBERSIHKAN CACHE KONFIGURASI ====="
 php artisan config:clear
 php artisan route:clear
