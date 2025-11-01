@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
+use App\Providers\RouteServiceProvider; // Tidak terpakai lagi di method store
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,8 +44,14 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // --- PERBAIKAN DI SINI ---
 
-        return redirect(RouteServiceProvider::HOME);
+        // 1. Hentikan auto-login dengan memberi komentar pada baris ini
+        // Auth::login($user);
+
+        // 2. Alihkan ke rute 'login' alih-alih ke 'HOME'
+        return redirect()->route('login')->with('status', 'Registrasi berhasil! Silakan login.');
+        
+        // --- AKHIR PERBAIKAN ---
     }
 }
