@@ -3,7 +3,7 @@
 use App\Http\Controllers\DiagnoseFormController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RefInstansiController;
-use App\Models\RefInstansi;
+// use App\Models\RefInstansi; // Tidak digunakan di file rute ini
 use App\Http\Controllers\RefInterdepenController;
 use App\Http\Controllers\RefTujuanController;
 use App\Http\Controllers\RefFungsiController;
@@ -23,9 +23,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// --- PERBAIKAN DI SINI ---
+// Rute utama '/' sekarang dialihkan ke halaman registrasi
 Route::get('/', function () {
+    return redirect('/register');
+});
+
+// Rute homepage asli ('home.index') dipindahkan ke '/home'
+Route::get('/home', function () {
     return view('home.index');
 });
+// --- AKHIR PERBAIKAN ---
+
 
 Route::group(
     [
@@ -41,7 +50,7 @@ Route::group(
             Route::resource('ref-instansi', RefInstansiController::class)->except('show');
             Route::resource('ref-interdepen', RefInterdepenController::class)->except('show');
             Route::resource('ref-tujuan', RefTujuanController::class)->except('show');
-            Route::resource('ref-fungsi', RefFungsiController::class)->except('show');        
+            Route::resource('ref-fungsi', RefFungsiController::class)->except('show');
         });
     }
 );
@@ -78,7 +87,7 @@ Route::group(
 );
 
 
-Route::middleware('auth')->group(function () {    
+Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
