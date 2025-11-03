@@ -37,7 +37,7 @@ RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available
 # 7. Atur kepemilikan file
 # Pastikan folder 'build' juga termasuk
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build
-
+RUN chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build
 # 8. Expose port 80 (Apache)
 EXPOSE 80
 

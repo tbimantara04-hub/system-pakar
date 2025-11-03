@@ -1,14 +1,5 @@
 #!/bin/sh
-
-# Hentikan skrip jika ada perintah yang gagal
 set -e
-
-# --- LANGKAH DEBUGGING ---
-# Cetak SEMUA environment variable yang diterima skrip ini
-echo "===== (ENTRYPOINT) DEBUGGING SEMUA ENV VARS ====="
-env
-echo "===== (ENTRYPOINT) SELESAI DEBUGGING SEMUA ENV VARS ====="
-# --- AKHIR LANGKAH DEBUGGING ---
 
 # HAPUS file .env yang ter-copy dari lokal
 echo "===== (ENTRYPOINT) MENGHAPUS FILE .env LOKAL (jika ada) ====="
@@ -19,6 +10,10 @@ echo "===== (ENTRYPOINT) MEMBERSIHKAN CACHE KONFIGURASI ====="
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+
+# Buat symbolic link untuk storage
+echo "===== (ENTRYPOINT) MEMBUAT STORAGE LINK ====="
+php artisan storage:link
 
 # Menjalankan migrasi database
 echo "===== (ENTRYPOINT) MENJALANKAN MIGRATION DATABASE ====="
