@@ -272,8 +272,62 @@ class DiagnoseFormController extends Controller
             }
         }
         // ... (dan seterusnya untuk regulasi, standar, alur) ...
-        // (Salin-tempel sisa blok if Anda dari baris 289 - 329 di sini)
-        // ... (Contoh: blok if terakhir) ...
+        if(!empty($data['regulasi_fungsi'])) {
+            foreach ($data['regulasi_fungsi'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 3;
+            }
+        }
+        if(!empty($data['regulasi_risiko'])) {
+            foreach ($data['regulasi_risiko'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 1;
+            }
+        }
+        if(!empty($data['standar_fungsi'])) {
+            foreach ($data['standar_fungsi'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 1;
+            }
+        }
+        if(!empty($data['standar_aplikasi'])) {
+            foreach ($data['standar_aplikasi'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 2;
+            }
+        }
+        if(!empty($data['alur_tujuan'])) {
+            foreach ($data['alur_tujuan'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 4;
+            }
+        }
+        if(!empty($data['alur_fungsi'])) {
+            foreach ($data['alur_fungsi'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 3;
+            }
+        }
+        if(!empty($data['alur_risiko'])) {
+            foreach ($data['alur_risiko'] as $value) {
+                if (empty($data['poin_sistem_tatakelola'][$value])) {
+                    $data['poin_sistem_tatakelola'][$value] = 0;
+                }
+                $data['poin_sistem_tatakelola'][$value] += 2;
+            }
+        }
         if(!empty($data['alur_aplikasi'])) {
             foreach ($data['alur_aplikasi'] as $value) {
                 if (empty($data['poin_sistem_tatakelola'][$value])) {
