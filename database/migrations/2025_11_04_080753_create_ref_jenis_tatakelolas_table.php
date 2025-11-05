@@ -18,7 +18,7 @@ return new class extends Migration
         $table->text('deskripsi')->nullable(); // <-- Contoh
         $table->timestamps();
     });
-}
+}    
 
     /**
      * Reverse the migrations.
