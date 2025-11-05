@@ -15,7 +15,7 @@ php artisan storage:link
 # --- PERBAIKAN DI SINI ---
 # Gunakan migrate:fresh untuk mereset database yang error
 echo "===== (ENTRYPOINT) MENJALANKAN MIGRATE:FRESH ====="
-php artisan migrate:fresh --force
+php artisan migrate --force
 # --- AKHIR PERBAIKAN ---
 
 echo "===== (ENTRYPOINT) MENYALAKAN SERVER APACHE ====="
