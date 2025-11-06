@@ -1,22 +1,27 @@
 #!/bin/sh
 set -e
 
+echo "===== (ENTRYPOINT) MEMAKSA DEPLOY BARU - V2 =====" # <-- BARIS BARU
+
+# HAPUS file .env yang ter-copy dari lokal
 echo "===== (ENTRYPOINT) MENGHAPUS FILE .env LOKAL (jika ada) ====="
 rm -f .env
 
+# Hapus cache konfigurasi
 echo "===== (ENTRYPOINT) MEMBERSIHKAN CACHE KONFIGURASI ====="
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
+# Buat symbolic link untuk storage
 echo "===== (ENTRYPOINT) MEMBUAT STORAGE LINK ====="
 php artisan storage:link
 
-# --- PERBAIKAN DI SINI ---
-# Gunakan migrate:fresh untuk mereset database yang error
-echo "===== (ENTRYPOINT) MENJALANKAN MIGRATE:FRESH ====="
+# Menjalankan migrasi database
+echo "===== (ENTRYPOINT) MENJALANKAN MIGRATION DATABASE ====="
+# KITA KEMBALIKAN KE migrate BIASA (JANGAN migrate:fresh LAGI)
 php artisan migrate --force
-# --- AKHIR PERBAIKAN ---
 
+# Menyalakan server Apache
 echo "===== (ENTRYPOINT) MENYALAKAN SERVER APACHE ====="
 apache2-foreground
