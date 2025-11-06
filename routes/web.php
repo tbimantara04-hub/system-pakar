@@ -92,5 +92,32 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
+// --- TAMBAHAN SEMENTARA UNTUK MENJADIKAN ADMIN ---
+Route::get('/make-me-admin-temp-12345', function() {
+    
+    // Pastikan Anda sudah login
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Anda harus login dulu!');
+    }
+
+    try {
+        $user = Auth::user();
+        
+        // Asumsi kolom role Anda adalah 'role' dan nilainya 'admin'
+        // Sesuaikan 'admin' jika nama role Anda berbeda (misal: '1')
+        $user->role = 'admin'; 
+        $user->save();
+
+        return 'SELAMAT! Akun Anda (' . $user->email . ') sekarang adalah admin. Segera HAPUS rute ini dari web.php!';
+    
+    } catch (\Exception $e) {
+        return 'Gagal: ' . $e->getMessage();
+    }
+
+})->middleware('auth');
+// --- AKHIR TAMBAHAN SEMENTARA ---
 
 require __DIR__.'/auth.php';
