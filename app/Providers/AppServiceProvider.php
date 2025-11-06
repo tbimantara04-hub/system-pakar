@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\URL; // <-- TAMBAHKAN BARIS INI
+use Illuminate\Support\Facades\URL; // <-- PASTIKAN 'use URL' ADA
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,12 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // --- TAMBAHKAN KODE INI ---
+        // --- PASTI KODE DI BAWAH INI ADA ---
         // Paksa Laravel untuk selalu membuat URL HTTPS
-        // Ini akan memperbaiki error "Mixed Content" (CSS/JS tidak ter-load) di Render
         if (env('APP_ENV') === 'production') {
             URL::forceScheme('https');
         }
-        // --- AKHIR TAMBAHAN KODE ---
+        // --- AKHIR DARI KODE TAMBAHAN ---
     }
 }
