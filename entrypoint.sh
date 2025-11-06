@@ -18,9 +18,8 @@ echo "===== (ENTRYPOINT) MEMBUAT STORAGE LINK ====="
 php artisan storage:link
 
 # Menjalankan migrasi database
-echo "===== (ENTRYPOINT) MENJALANKAN MIGRATION DATABASE ====="
-# KITA KEMBALIKAN KE migrate BIASA (JANGAN migrate:fresh LAGI)
-php artisan migrate --force
+echo "===== (ENTRYPOINT) MENJALANKAN MIGRATE:FRESH ====="
+php artisan migrate:fresh --force
 
 # Menyalakan server Apache
 echo "===== (ENTRYPOINT) MENYALAKAN SERVER APACHE ====="
