@@ -19,7 +19,7 @@ php artisan storage:link
 
 # Menjalankan migrasi database
 echo "===== (ENTRYPOINT) MENJALANKAN MIGRATE:FRESH ====="
-php artisan migrate:fresh --force
+php artisan migrate --force
 
 # Menyalakan server Apache
 echo "===== (ENTRYPOINT) MENYALAKAN SERVER APACHE ====="
