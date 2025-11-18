@@ -20,6 +20,6 @@
                 tentang Kerangka Kerja Pelindungan Infrastruktur Informasi Vital. Sistem ISO merupakan representasi ISO
                 27001:2022</li>
         </ul>
-        <p>Jika ada hal yang perlu ditanyakan, dpat menghubungi <strong>prasetyo.adi01@ui.ac.id</strong></p>
+        <p>Jika ada hal yang perlu ditanyakan, dapat menghubungi <strong>prasetyo.adi01@ui.ac.id</strong></p>
     </div>
 @endsection
