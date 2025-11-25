@@ -2,520 +2,161 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\IIV;
-use App\Models\Interdepen;
-use App\Models\RefInterdepen;
-use App\Models\RefJenisTatakelola;
-use App\Models\SumberDaya;
-use App\Models\TataKelola;
-use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use App\Models\RefJenisTatakelola;
+use Illuminate\Support\Facades\Log;
 
 class DiagnoseFormController extends Controller
 {
     public function index()
     {
-        return view('diagnose.form.index');
+        return redirect()->route('diagnose.form.form1');
     }
 
     public function form1()
     {
-        $data_form1 = session('diagnose_data.form1', []);
-        return view('diagnose.form.form1', compact('data_form1'));
+        return view('diagnose.form.form1', [
+            'data_form1' => session('form1')
+        ]);
     }
 
     public function form1Store(Request $request)
     {
-        $data = $request->validate([
-            'nama_sistem' => 'required',
-            'deskripsi_sistem' => 'required',
-            'kesamaan_sistem' => 'nullable',
-        ]);
-
-        session()->put('diagnose_data', [
-            'form1' => $data,
-        ]);
-
-        if (isset($data['kesamaan_sistem']) && $data['kesamaan_sistem']) {
-            return to_route('diagnose.form.form2');
-        }
-
-        return to_route('diagnose.form.form4');
+        session(['form1' => $request->all()]);
+        Log::info('FORM1 DISIMPAN', $request->all());
+        return redirect()->route('diagnose.form.form2');
     }
 
     public function form2()
     {
-        $allRefInterdepen = RefInterdepen::all();
-        $all_iiv = IIV::all();
-        $data_form2 = session('diagnose_data.form2', []);
-        return view('diagnose.form.form2', compact('all_iiv', 'data_form2', 'allRefInterdepen'));
+        return view('diagnose.form.form2', [
+            'data_form2' => session('form2')
+        ]);
     }
 
     public function form2Store(Request $request)
     {
-        $allRefInterdepen = RefInterdepen::all();
-
-        $formValidation = [];
-        foreach ($allRefInterdepen as $refInterdepen) {
-            $slug = Str::slug($refInterdepen->label, '_');
-            $formValidation[$slug] = 'nullable|array';
-            $formValidation[$slug . '.*'] = 'nullable|string';
-        }
-
-        $data = $request->validate([
-            ...$formValidation,
-        ]);
-
-        $data['poin_sistem'] = [];
-        $data['sistem_pilihan'] = [];
-
-        foreach ($allRefInterdepen as $refInterdepen) {
-            $slug = Str::slug($refInterdepen->label, '_');
-            if (!empty($data[$slug])) {
-                foreach ($data[$slug] as $value) {
-                    if (empty($data['poin_sistem'][$value])) {
-                        $data['poin_sistem'][$value] = 0;
-                    }
-                    if(empty($data['sistem_pilihan'][$value])) {
-                        $data['sistem_pilihan'][$value] = [];
-                    }
-                    $data['sistem_pilihan'][$value][] = $refInterdepen->label;
-                    $data['poin_sistem'][$value] += $refInterdepen->poin;
-                }
-            }
-        }
-
-        $poin_order = [];
-        foreach ($data['poin_sistem'] as $key => $value) {
-            if (empty($poin_order[$value])) {
-                $poin_order[$value] = [
-                    'sistem' => [],
-                    'poin' => $value,
-                ];
-            }
-            $poin_order[$value]['sistem'][] = $key;
-        }
-
-        krsort($poin_order);
-        $data['poin_order'] = $poin_order;
-
-        // Periksa jika array $poin_order kosong (user tidak memilih apa-apa)
-        if (empty($poin_order)) {
-            return back()->withInput()->with('error', 'Anda harus memilih setidaknya satu opsi ketergantungan.');
-        }
-
-        $max = $poin_order[array_key_first($poin_order)];
-
-        $data = [
-            ...session('diagnose_data'),
-            'form2' => $data,
-        ];
-        
-        if (count($max['sistem']) == 1) {
-            $data['sistem_terpilih'] = [$max['sistem'][0]];
-            session()->put('diagnose_data', $data);
-            return to_route('diagnose.form.result');
-        }
-        
-        session()->put('diagnose_data', $data);
-        return to_route('diagnose.form.form3');
+        session(['form2' => $request->all()]);
+        Log::info('FORM2 DISIMPAN', $request->all());
+        return redirect()->route('diagnose.form.form3');
     }
 
     public function form3()
     {
-        $data_form3 = session('diagnose_data.form3', []);
-        return view('diagnose.form.form3', compact('data_form3'), ['diagnose_data' => session('diagnose_data')]);
+        return view('diagnose.form.form3', [
+            'data_form3' => session('form3')
+        ]);
     }
 
     public function form3Store(Request $request)
     {
-        $data = $request->validate([
-            'nilai_kemungkinan' => 'required|numeric|min:0|max:5',
-            'nilai_dampak_organisasi' => 'required|numeric|min:0|max:5',
-            'nilai_dampak_nasional' => 'required|numeric|min:0|max:5',
-        ]);
-
-        $nilai_dampak = ($data['nilai_dampak_organisasi'] + $data['nilai_dampak_nasional']) / 2; // Perbaikan logika
-        $data['nilai_risiko'] = $data['nilai_kemungkinan'] * $nilai_dampak;
-
-        // Ambil data sesi dengan aman
-        $poin_sistem = session('diagnose_data.form2.poin_sistem', []);
-
-        $iiv1 = IIV::whereIn('nama', array_keys($poin_sistem))->where('nilai_risiko', '>=', $data['nilai_risiko'])->orderBy('nilai_risiko', 'asc')->limit(1)->get();
-        $iiv2 = IIV::whereIn('nama', array_keys($poin_sistem))->where('nilai_risiko', '<', $data['nilai_risiko'])->orderBy('nilai_risiko', 'desc')->limit(1)->get();
-        
-        $iiv = $iiv1->merge($iiv2);
-        $sistem_terpilih = $iiv->pluck('nama')->toArray();
-        
-        $data = [
-            ...session('diagnose_data'),
-            'form3' => $data,
-            'sistem_terpilih' => $sistem_terpilih,
-        ];
-        
-        session()->put('diagnose_data', $data);
-        return to_route('diagnose.form.result');
+        session(['form3' => $request->all()]);
+        Log::info('FORM3 DISIMPAN', $request->all());
+        return redirect()->route('diagnose.form.form4');
     }
 
-    public function form4()
-    {
-        // Kode ini akan GAGAL jika migrasi RefJenisTatakelola belum di-push
-        $allTatakelola = RefJenisTatakelola::all(); 
-        $data_form4 = session('diagnose_data.form4', []);
-        return view('diagnose.form.form4', compact('allTatakelola', 'data_form4'));
-    }
+   public function form4Store(Request $request)
+{
+    // =========================
+    // 1. CEK APAKAH MASUK CONTROLLER
+    // =========================
+    \Log::info('FORM4 >>> REQUEST MASUK', $request->all());
 
-    public function form4store(Request $request)
-    {
-        $data = $request->validate([
-            //sumberdaya
-            'kriteria_pendanaan_pengamanan' => 'nullable|array',
-            'kriteria_pendanaan_pemulihan' => 'nullable|array',
-            'kriteria_pendanaan_pendukung' => 'nullable|array',
-            'kriteria_keterampilan_pengamanan' => 'nullable|array',
-            'kriteria_keterampilan_identifikasi' => 'nullable|array',
-            'kesadaran_interdepen' => 'nullable|array',
-            'kriteria_kesadaran_risiko' => 'nullable|array',
-            //tatakelola
-            'regulasi_tujuan' => 'nullable|array',
-            'regulasi_fungsi' => 'nullable|array',
-            'regulasi_risiko' => 'nullable|array',
-            'standar_fungsi' => 'nullable|array',
-            'standar_aplikasi' => 'nullable|array',
-            'alur_tujuan' => 'nullable|array',
-            'alur_fungsi' => 'nullable|array',
-            'alur_risiko' => 'nullable|array',
-            'alur_aplikasi' => 'nullable|array',
-        ]);
+    // =========================
+    // 2. VALIDASI SESUAI FORM
+    // =========================
+    $validated = $request->validate([
+        'kriteria_pendanaan_pengamanan'     => 'required|array|min:1',
+        'kriteria_pendanaan_pemulihan'      => 'required|array|min:1',
+        'kriteria_pendanaan_pendukung'      => 'required|array|min:1',
+        'kriteria_keterampilan_pengamanan'  => 'required|array|min:1',
+        'kriteria_keterampilan_identifikasi'=> 'required|array|min:1',
+        'kesadaran_interdepen'              => 'required|array|min:1',
+        'kriteria_kesadaran_risiko'         => 'required|array|min:1',
 
-        $data['poin_sistem_tatakelola'] = [];
-        $data['poin_sistem_sumberdaya'] = []; // Array ini yang seharusnya diisi
+        'regulasi_tujuan'   => 'required|in:0,1',
+        'regulasi_fungsi'   => 'required|in:0,1',
+        'regulasi_risiko'   => 'required|in:0,1',
+        'standart_fungsi'   => 'required|in:0,1',
+        'standart_aplikasi' => 'required|in:0,1',
+        'alur_tujuan'       => 'required|in:0,1',
+        'alur_fungsi'       => 'required|in:0,1',
+        'alur_risiko'       => 'required|in:0,1',
+        'alur_aplikasi'     => 'required|in:0,1',
+    ]);
 
-        // --- PERBAIKAN LOGIKA BUG (Baris 225-278) ---
-        // Anda menambahkan poin ke 'poin_sistem_tatakelola' padahal seharusnya 'poin_sistem_sumberdaya'
-        
-        //sumberdaya
-        if(!empty($data['kriteria_pendanaan_pengamanan'])) {
-            foreach ($data['kriteria_pendanaan_pengamanan'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 2; // FIX
-            }
-        }
+    \Log::info('FORM4 >>> VALIDASI LOLOS', $validated);
 
-        if(!empty($data['kriteria_pendanaan_pemulihan'])) {
-            foreach ($data['kriteria_pendanaan_pemulihan'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 2; // FIX
-            }
-        }
+    // =========================
+    // 3. SIMPAN KE SESSION
+    // =========================
+    session([
+        'form4' => $validated
+    ]);
 
-        if(!empty($data['kriteria_pendanaan_pendukung'])) {
-            foreach ($data['kriteria_pendanaan_pendukung'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 4; // FIX
-            }
-        }
+    \Log::info('FORM4 >>> SESSION TERSIMPAN', session('form4'));
 
-        if(!empty($data['kriteria_keterampilan_pengamanan'])) {
-            foreach ($data['kriteria_keterampilan_pengamanan'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 3; // FIX
-            }
-        }
+    // =========================
+    // 4. FINAL DEBUG (OPTIONAL)
+    // Aktifkan jika ingin berhenti di sini
+    // =========================
+    // dd('✅ FORM4 BERHASIL DISIMPAN', session('form4'));
 
-        if(!empty($data['kriteria_keterampilan_identifikasi'])) {
-            foreach ($data['kriteria_keterampilan_identifikasi'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 7; // FIX
-            }
-        }
+    // =========================
+    // 5. LANJUT KE RESULT
+    // =========================
+    return redirect()->route('diagnose.form.result');
+}
 
-        if(!empty($data['kesadaran_interdepen'])) {
-            foreach ($data['kesadaran_interdepen'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 4; // FIX
-            }
-        }
-
-        if(!empty($data['kriteria_kesadaran_risiko'])) {
-            foreach ($data['kriteria_kesadaran_risiko'] as $value) {
-                if (empty($data['poin_sistem_sumberdaya'][$value])) { // FIX
-                    $data['poin_sistem_sumberdaya'][$value] = 0;
-                }
-                $data['poin_sistem_sumberdaya'][$value] += 3; // FIX
-            }
-        }
-        // --- AKHIR PERBAIKAN LOGIKA BUG ---
-
-
-        // tatakelola (Logika Anda di sini sudah benar)
-        if(!empty($data['regulasi_tujuan'])) {
-            foreach ($data['regulasi_tujuan'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 1;
-            }
-        }
-        // ... (dan seterusnya untuk regulasi, standar, alur) ...
-        if(!empty($data['regulasi_fungsi'])) {
-            foreach ($data['regulasi_fungsi'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 3;
-            }
-        }
-        if(!empty($data['regulasi_risiko'])) {
-            foreach ($data['regulasi_risiko'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 1;
-            }
-        }
-        if(!empty($data['standar_fungsi'])) {
-            foreach ($data['standar_fungsi'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 1;
-            }
-        }
-        if(!empty($data['standar_aplikasi'])) {
-            foreach ($data['standar_aplikasi'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 2;
-            }
-        }
-        if(!empty($data['alur_tujuan'])) {
-            foreach ($data['alur_tujuan'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 4;
-            }
-        }
-        if(!empty($data['alur_fungsi'])) {
-            foreach ($data['alur_fungsi'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 3;
-            }
-        }
-        if(!empty($data['alur_risiko'])) {
-            foreach ($data['alur_risiko'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 2;
-            }
-        }
-        if(!empty($data['alur_aplikasi'])) {
-            foreach ($data['alur_aplikasi'] as $value) {
-                if (empty($data['poin_sistem_tatakelola'][$value])) {
-                    $data['poin_sistem_tatakelola'][$value] = 0;
-                }
-                $data['poin_sistem_tatakelola'][$value] += 2;
-            }
-        }
-        // --- AKHIR BLOK TATAKELOLA ---
-
-
-        //get max poin antar sistem
-        $poin_order_tatakelola = [];
-        $poin_order_sumberdaya = [];
-
-        foreach ($data['poin_sistem_tatakelola'] as $key => $value) {
-            if (empty($poin_order_tatakelola[$value])) {
-                $poin_order_tatakelola[$value] = [
-                    'sistem' => [],
-                    'poin' => $value,
-                ];
-            }
-            $poin_order_tatakelola[$value]['sistem'][] = $key;
-        }
-
-        foreach ($data['poin_sistem_sumberdaya'] as $key => $value) {
-            if (empty($poin_order_sumberdaya[$value])) {
-                $poin_order_sumberdaya[$value] = [
-                    'sistem' => [],
-                    'poin' => $value,
-                ];
-            }
-            $poin_order_sumberdaya[$value]['sistem'][] = $key;
-        }
-
-        krsort($poin_order_tatakelola);
-        krsort($poin_order_sumberdaya);
-
-        $data['poin_order_tatakelola'] = $poin_order_tatakelola;
-        $data['poin_order_sumberdaya'] = $poin_order_sumberdaya;
-
-        // --- PERBAIKAN ERROR (Baris 351-352) ---
-        // Sama seperti di form2Store, kita harus periksa jika array ini kosong
-        if (empty($poin_order_tatakelola) || empty($poin_order_sumberdaya)) {
-            return back()->withInput()->with('error', 'Anda harus memilih setidaknya satu opsi untuk Sumber Daya dan Tata Kelola.');
-        }
-        // --- AKHIR PERBAIKAN ---
-
-        $max_tatakelola = $poin_order_tatakelola[array_key_first($poin_order_tatakelola)];
-        $max_sumberdaya = $poin_order_sumberdaya[array_key_first($poin_order_sumberdaya)];
-
-        $nilai_total = $max_tatakelola['poin'] + $max_sumberdaya['poin'];
-        
-        
-        $data = [
-            ...session('diagnose_data'),
-            'form4' => $data,
-        ];
-        
-        
-        $data['kriteria_terpilih'] = [$max_tatakelola['sistem'][0], $max_sumberdaya['sistem'][0]];
-        $data['nilai_total'] = $nilai_total;
-
-        // --- PERBAIKAN: Hapus dd() ---
-        // dd($data); // Hentikan eksekusi, GANTI DENGAN YANG DI BAWAH
-        
-        session()->put('diagnose_data', $data);
-        return to_route('diagnose.form.result');
-    }
 
     public function result()
-    { 
-        // Periksa keamanan sesi
-        $session_data = session('diagnose_data', []);
-        if (empty($session_data) || empty($session_data['sistem_terpilih']) || empty($session_data['form1'])) {
-            return to_route('diagnose.form.form1')->with('error', 'Sesi Anda telah berakhir, silakan mulai lagi.');
-        }
-
-        $iiv = IIV::with('refInstansi', 'interdepenSistemIIV', 'interdepenSistemIIV.sistemElektronik')
-            ->whereIn('nama', $session_data['sistem_terpilih'])
-            ->get();
-
-        IIV::FirstOrCreate([
-            'nama' => $session_data['form1']['nama_sistem'],
-            'deskripsi_sistem' => $session_data['form1']['deskripsi_sistem'],
-            'ref_instansi_id' => Auth::user()->instansi_ref,
-            'user_id' => Auth::user()->id,
-            'nilai_risiko' => 0.0,
-        ]);
-
-        if (isset($session_data['form2']) && isset($session_data['form2']['poin_sistem'])) {
-            foreach ($session_data['form2']['poin_sistem'] as $key => $value) {
-                if(!IIV::where('nama', $key)->exists()) {
-                    IIV::FirstOrCreate([
-                        'nama' => $key,
-                        'deskripsi_sistem' => $session_data['form1']['deskripsi_sistem'],
-                        'ref_instansi_id' => Auth::user()->instansi_ref,
-                        'user_id' => Auth::user()->id,
-                        'nilai_risiko' => 0.0,
-                    ]);
-                }
-            }
-        }
-
-        if (isset($session_data['form2']) && isset($session_data['form2']['sistem_pilihan'])) {
-            foreach ($session_data['sistem_terpilih'] as $sistem_terpilih) {
-                if (isset($session_data['form2']['sistem_pilihan'][$sistem_terpilih])) {
-                    foreach ($session_data['form2']['sistem_pilihan'][$sistem_terpilih] as $sistem_pilihan) {
-                        Interdepen::FirstOrCreate([
-                            'ref_interdepen_id' => RefInterdepen::where('label', $sistem_pilihan)->first()->id,
-                            'sistem_elektronik_id' => IIV::where('nama', $session_data['form1']['nama_sistem'])->first()->id,
-                            'sistem_iiv_id' => IIV::where('nama', $sistem_terpilih)->first()->id,
-                            'deskripsi_interdepen' => "",
-                        ]);
-                    }
-                }
-            }
-        }
-
-        return view('diagnose.form.result', [
-            'iiv' => $iiv,
-            'diagnose_data' => $session_data,
-        ]);
-    }
-
-    public function result2()
     {
-        $session_data = session('diagnose_data', []);
-        if (empty($session_data) || empty($session_data['sistem_terpilih'])) {
-            return to_route('diagnose.form.form1')->with('error', 'Sesi Anda telah berakhir, silakan mulai lagi.');
+        $form1 = session('form1');
+        $form2 = session('form2');
+        $form3 = session('form3');
+        $form4 = session('form4');
+
+        // Tambahan logging untuk debug: Cek apakah session ada
+        Log::info('RESULT: Cek Session', [
+            'form1' => $form1 ? 'ada' : 'kosong',
+            'form2' => $form2 ? 'ada' : 'kosong',
+            'form3' => $form3 ? 'ada' : 'kosong',
+            'form4' => $form4 ? 'ada' : 'kosong',
+        ]);
+
+        if (!$form4) {
+            Log::error('RESULT: Form4 kosong, redirect ke form4');
+            return redirect()->route('diagnose.form.form4')
+                ->withErrors('Data Form 4 belum lengkap. Pastikan semua field diisi.');
         }
 
-        $iivs = IIV::with('sumberdaya','tatakelola','tujuan','refInstansi', 'interdepenSistemIIV', 'interdepenSistemIIV.sistemElektronik')
-            ->whereIn('nama', $session_data['sistem_terpilih'])
-            ->get();
+        Log::info('MENUJU RESULT', compact('form1','form2','form3','form4'));
 
-        $sistem_terpilih_ids = $iivs->pluck('id')->toArray();
-        $sistem_terpilih_ids = array_merge(
-            $sistem_terpilih_ids, 
-            $iivs->pluck('interdepenSistemIIV')->flatten()->pluck('sistemElektronik')->flatten()->pluck('id')->toArray()
-        );
-        
-        $sistem_terpilih = IIV::with(['tujuan', 'tujuan.refTujuan', 'tujuan.risiko', 'tujuan.risiko.kendali', 'tujuan.risiko.kendali.refFungsi'])
-            ->whereIn('id', array_unique($sistem_terpilih_ids))
-            ->get();
+        $hasil = [
+            'form1' => $form1,
+            'form2' => $form2,
+            'form3' => $form3,
+            'form4' => $form4,
+        ];
 
-        return view('diagnose.form.result2',[
-            'iivs' => $iivs,
-            'sistem_terpilih' => $sistem_terpilih,
-            'diagnose_data' => $session_data
-        ]);
-    }
-
-    public function print()
-    {
-        $session_data = session('diagnose_data', []);
-        if (empty($session_data) || empty($session_data['sistem_terpilih']) || empty($session_data['form1']['nama_sistem'])) {
-            return to_route('diagnose.form.form1')->with('error', 'Sesi Anda telah berakhir, silakan mulai lagi.');
-        }
-
-        $name = $session_data['form1']['nama_sistem'];
-        $date = date('Y-m-d');
-        
-        $iivs = IIV::with('tujuan','refInstansi', 'interdepenSistemIIV', 'interdepenSistemIIV.sistemElektronik')
-            ->whereIn('nama', $session_data['sistem_terpilih'])
-            ->get();
-
-        $sistem_terpilih_ids = $iivs->pluck('id')->toArray();
-        $sistem_terpilih_ids = array_merge(
-            $sistem_terpilih_ids, 
-            $iivs->pluck('interdepenSistemIIV')->flatten()->pluck('sistemElektronik')->flatten()->pluck('id')->toArray()
-        );
-        
-        $sistem_terpilih = IIV::with(['tujuan', 'tujuan.refTujuan', 'tujuan.risiko', 'tujuan.risiko.kendali', 'tujuan.risiko.kendali.refFungsi'])
-            ->whereIn('id', array_unique($sistem_terpilih_ids))
-            ->get();
-        
-        $pdf = FacadePdf::loadview('diagnose.cetak.index',[
-            'iivs' => $iivs,
-            'sistem_terpilih' => $sistem_terpilih,
-            'diagnose_data' => $session_data
-        ]);
-        return $pdf->stream($name . $date . '.pdf');
+        return view('diagnose.form.result', compact('hasil'));
     }
 
     public function reset()
     {
-        session()->forget('diagnose_data');
-        return to_route('diagnose.form.form1');
+        session()->forget(['form1','form2','form3','form4']);
+        return redirect()->route('diagnose.form.form1');
+    }
+
+    public function print()
+    {
+        $hasil = [
+            'form1' => session('form1'),
+            'form2' => session('form2'),
+            'form3' => session('form3'),
+            'form4' => session('form4'),
+        ];
+
+        return view('diagnose.form.print', compact('hasil'));
     }
 }

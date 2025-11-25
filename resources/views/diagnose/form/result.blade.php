@@ -34,14 +34,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($diagnose_data['form2']['poin_order'] as $poin_order)
-                        @foreach ($poin_order['sistem'] as $nilai_sistem)
-                            <tr>
-                                <td>{{ $nilai_sistem }}</td>
-                                <td>{{ $poin_order['poin'] }}</td>
-                            </tr>
-                        @endforeach
-                    @endforeach
+                    @if(isset($diagnose_data['form2']['poin_order']))
+                     @foreach ($diagnose_data['form2']['poin_order'] as $poin_order)
+                     @foreach ($poin_order['sistem'] as $nilai_sistem)
+            <tr>
+                <td>{{ $nilai_sistem }}</td>
+                <td>{{ $poin_order['poin'] }}</td>
+            </tr>
+        @endforeach
+    @endforeach
+@else
+    <tr>
+        <td colspan="2">Form 2 dilewati, tidak ada data interdependency.</td>
+    </tr>
+@endif
+
                 </tbody>
             </table>
 
