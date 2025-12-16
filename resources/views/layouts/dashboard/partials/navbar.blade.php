@@ -18,15 +18,17 @@
                     alt="">
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                <a class="dropdown-item" href="#">My Profile</a>
-                <a class="dropdown-item" href="#">My Tasks</a>
-                <a class="dropdown-item" href="#">Settings</a>
+                <a class="dropdown-item" href="{{ route('profile.edit') }}">My Profile</a>
+                {{-- <a class="dropdown-item" href="#">My Tasks</a> --}}
+                {{-- <a class="dropdown-item" href="#">Settings</a> --}}
                 <div class="dropdown-divider"></div>
 
-
-                <form action="{{ route('logout') }}" method="POST">
+                <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="dropdown-item text-danger">Sign out</button>
+                    <a href="{{ route('logout') }}" class="dropdown-item text-danger"
+                       onclick="event.preventDefault(); this.closest('form').submit();">
+                        Sign out
+                    </a>
                 </form>
             </div>
         </li>
