@@ -25,19 +25,37 @@ class DiagnoseFormController extends Controller
     public function form1()
     {
         // Ambil data referensi yang dibutuhkan untuk Form 1
-        $instansis = []; // RefInstansi
-        $tujuans = [];   // RefTujuan
-        $dampaks = [];   // RefDampak
+        $modelsData = [];
 
         try {
+            // RefInstansi
             if (class_exists(RefInstansi::class)) {
-                $instansis = RefInstansi::all();
+                $modelsData[] = [
+                    'modelName' => 'ref_instansi',
+                    'variableName' => 'ref_instansi_id',
+                    'labelColumn' => 'nama_instansi',
+                    'rows' => RefInstansi::all()
+                ];
             }
+            
+            // RefTujuan
             if (class_exists(RefTujuan::class)) {
-                $tujuans = RefTujuan::all();
+                $modelsData[] = [
+                    'modelName' => 'ref_tujuan',
+                    'variableName' => 'ref_tujuan_id',
+                    'labelColumn' => 'nama_tujuan',
+                    'rows' => RefTujuan::all()
+                ];
             }
+            
+            // RefDampak
             if (class_exists(RefDampak::class)) {
-                $dampaks = RefDampak::all();
+                $modelsData[] = [
+                    'modelName' => 'ref_dampak',
+                    'variableName' => 'ref_dampak_id',
+                    'labelColumn' => 'nama_dampak',
+                    'rows' => RefDampak::all()
+                ];
             }
         } catch (\Exception $e) {
             Log::error('Gagal mengambil data referensi Form 1: ' . $e->getMessage());
@@ -46,9 +64,7 @@ class DiagnoseFormController extends Controller
         // Kirim semua variabel ke View
         return view('diagnose.form.form1', [
             'data_form1' => session('form1'),
-            'instansis' => $instansis, // Variabel diubah dari $ref_instansi menjadi $instansis
-            'tujuans' => $tujuans,
-            'dampaks' => $dampaks
+            'modelsData' => $modelsData
         ]);
     }
 
