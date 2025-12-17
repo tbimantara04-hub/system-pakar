@@ -81,20 +81,16 @@ class DiagnoseFormController extends Controller
     // ==========================================================
     public function form2()
     {
-        $fungsis = []; // RefFungsi
-        $interdepens = []; // RefInterdepen
-        $sistemElektroniks = []; // Data sistem elektronik lain (IIV)
+        $allRefInterdepen = []; // RefInterdepen
+        $all_iiv = []; // Data sistem elektronik lain (IIV)
 
         try {
-            if (class_exists(RefFungsi::class)) {
-                $fungsis = RefFungsi::all();
-            }
             if (class_exists(RefInterdepen::class)) {
-                $interdepens = RefInterdepen::all();
+                $allRefInterdepen = RefInterdepen::all();
             }
             // Asumsi untuk interdependensi, kita butuh daftar sistem lain yang sudah diinput
             if (class_exists(IIV::class)) {
-                $sistemElektroniks = IIV::all(); 
+                $all_iiv = IIV::all(); 
             }
         } catch (\Exception $e) {
             Log::error('Gagal mengambil data referensi Form 2: ' . $e->getMessage());
@@ -102,9 +98,8 @@ class DiagnoseFormController extends Controller
 
         return view('diagnose.form.form2', [
             'data_form2' => session('form2'),
-            'fungsis' => $fungsis,
-            'interdepens' => $interdepens,
-            'sistemElektroniks' => $sistemElektroniks,
+            'allRefInterdepen' => $allRefInterdepen,
+            'all_iiv' => $all_iiv,
         ]);
     }
 
