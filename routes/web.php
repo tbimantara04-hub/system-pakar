@@ -6,6 +6,7 @@ use App\Http\Controllers\RefInstansiController;
 // use App\Models\RefInstansi; // Tidak digunakan di file rute ini
 use App\Http\Controllers\RefInterdepenController;
 use App\Http\Controllers\RefTujuanController;
+use App\Http\Controllers\RefDampakController;
 use App\Http\Controllers\RefFungsiController;
 use App\Http\Controllers\IIVController;
 use App\Http\Controllers\InterdepenController;
@@ -51,6 +52,7 @@ Route::group(
             Route::resource('ref-interdepen', RefInterdepenController::class)->except('show');
             Route::resource('ref-tujuan', RefTujuanController::class)->except('show');
             Route::resource('ref-fungsi', RefFungsiController::class)->except('show');
+            Route::resource('ref-dampak', RefDampakController::class)->except('show');
         });
     }
 );
