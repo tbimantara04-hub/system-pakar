@@ -57,7 +57,8 @@
     <script>
         $(document).ready(function() {
             $('.js-example-basic-multiple').select2({
-                tags: true
+                tags: true,
+                width: '100%'
             });
         });
     </script>
