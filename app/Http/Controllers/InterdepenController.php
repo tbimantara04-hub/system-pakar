@@ -21,6 +21,7 @@ class InterdepenController extends Controller
      */
     public function create()
     {
+        $interdepen = new Interdepen();
         return view('pages.interdepen.form', compact('interdepen'));
     }
 
