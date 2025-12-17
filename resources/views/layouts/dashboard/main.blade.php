@@ -31,6 +31,7 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ asset('dist/js/vendor.js') }}"></script>
 <script src="{{ asset('dist/js/adminx.js') }}"></script>
 
