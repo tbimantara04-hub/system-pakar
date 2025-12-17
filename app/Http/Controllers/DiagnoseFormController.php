@@ -106,8 +106,61 @@ class DiagnoseFormController extends Controller
     public function form2Store(Request $request)
     {
         // TODO: Tambahkan validasi Request::validate(...) di sini
-        session(['form2' => $request->all()]);
-        Log::info('FORM2 DISIMPAN', $request->all());
+        $data = $request->all();
+        
+        // --- LOGIKA HITUNG POIN INTERDEPENDENSI ---
+        $systemPoints = [];
+        $allRefInterdepen = [];
+        
+        try {
+            if (class_exists(RefInterdepen::class)) {
+                $allRefInterdepen = RefInterdepen::all();
+            }
+        } catch (\Exception $e) {
+            Log::error('Gagal ambil RefInterdepen di form2Store: ' . $e->getMessage());
+        }
+
+        foreach ($allRefInterdepen as $ref) {
+            $slug = \Illuminate\Support\Str::slug($ref->label, '_');
+            
+            // Cek apakah ada input untuk interdependensi ini
+            if (isset($data[$slug]) && is_array($data[$slug])) {
+                foreach ($data[$slug] as $sistemName) {
+                    if (!isset($systemPoints[$sistemName])) {
+                        $systemPoints[$sistemName] = 0;
+                    }
+                    // Tambahkan poin sesuai bobot interdependensi
+                    $systemPoints[$sistemName] += $ref->poin;
+                }
+            }
+        }
+
+        // Grouping berdasarkan poin untuk sorting
+        $groupedByPoint = [];
+        foreach ($systemPoints as $sistem => $poin) {
+            $groupedByPoint[$poin][] = $sistem;
+        }
+
+        // Sort keys (poin) descending
+        krsort($groupedByPoint);
+
+        // Format data sesuai kebutuhan View form3
+        // Structure: [ ['poin' => 10, 'sistem' => ['A', 'B']], ... ]
+        $poin_order = [];
+        foreach ($groupedByPoint as $poin => $sistems) {
+            $poin_order[] = [
+                'poin' => $poin,
+                'sistem' => $sistems
+            ];
+        }
+
+        // Simpan ke array data form2
+        $data['poin_order'] = $poin_order;
+        
+        // Simpan ke session
+        session(['form2' => $data]);
+        
+        Log::info('FORM2 DISIMPAN', $data);
         return redirect()->route('diagnose.form.form3');
     }
 
