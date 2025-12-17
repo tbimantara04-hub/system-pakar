@@ -1,6 +1,6 @@
 @php
     $title = $interdepen->exists ? 'Edit' : 'Tambah';
-    $route = $interdepen->exists ? route('interdepen.update', $iiv->id) : route('interdepen.store');
+    $route = $interdepen->exists ? route('interdepen.update', $interdepen->id) : route('interdepen.store');
     $method = $interdepen->exists ? 'PUT' : 'POST';
 @endphp
 
@@ -38,7 +38,7 @@
                         <div class="form-group">
                             <label class="form-label" for="sistem_elektronik_id">Deskripsi</label>
                             <input type="text" class="form-control" id="sistem_elektronik_id" name="sistem_elektronik_id"
-                                value="{{ old('sistem_elektronik_id') ?? $iiv->sistem_elektronik_id }}"
+                                value="{{ old('sistem_elektronik_id') ?? $interdepen->sistem_elektronik_id }}"
                                 placeholder="Deskripsi Sistem">
                         </div>
                         <div class="form-group">
@@ -46,7 +46,7 @@
                             <select class="form-control js-example-basic-single" name="ref_instansi_id">
                                 <option value="">Instansi</option>
                                 @foreach (App\Models\RefInstansi::all() as $instansi)
-                                    <option value="{{ $instansi->id }}" @selected($instansi->id === (old('ref_instansi_id') ?? $iiv->ref_instansi_id))>
+                                    <option value="{{ $instansi->id }}" @selected($instansi->id === (old('ref_instansi_id') ?? $interdepen->ref_instansi_id))>
                                         {{ $instansi->nama_instansi }}
                                     </option>
                                 @endforeach
@@ -55,7 +55,7 @@
                         <div class="form-group">
                             <label class="form-label" for="nilai_risiko">Nilai Risiko</label>
                             <input type="text" class="form-control" id="nilai_risiko" name="nilai_risiko"
-                                value="{{ old('nilai_risiko') ?? $iiv->nilai_risiko }}" placeholder="Nilai Risiko">
+                                value="{{ old('nilai_risiko') ?? $interdepen->nilai_risiko }}" placeholder="Nilai Risiko">
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
