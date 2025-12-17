@@ -15,12 +15,12 @@
 <div class="adminx-container">
 
     {{-- Navbar --}}
-    @includeIf('layouts.dashboard.navbar')
+    @includeIf('layouts.dashboard.partials.navbar')
 
     <div class="adminx-content">
 
         {{-- Sidebar --}}
-        @includeIf('layouts.dashboard.sidebar')
+        @includeIf('layouts.dashboard.partials.sidebar')
 
         <div class="adminx-main-content">
             <div class="container-fluid">
