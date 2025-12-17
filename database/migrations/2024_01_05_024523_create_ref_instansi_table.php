@@ -14,6 +14,14 @@ return new class extends Migration
         Schema::create('ref_instansi', function (Blueprint $table) {
             $table->id();
             $table->string('nama_instansi');
+            
+            // --- BAGIAN PERBAIKAN ---
+            // Menambahkan kolom yang dibutuhkan oleh Seeder
+            $table->text('alamat')->nullable();
+            $table->string('telepon')->nullable();
+            $table->string('email')->nullable();
+            // ------------------------
+
             $table->timestamps();
         });
     }

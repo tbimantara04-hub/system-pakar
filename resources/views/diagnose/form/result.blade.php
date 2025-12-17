@@ -1,6 +1,7 @@
 @extends('layouts.dashboard.main')
 
 @section('content')
+    {{-- Tampilkan Error jika ada (Jaga-jaga) --}}
     @if ($errors->any())
         <div class="alert alert-danger mt-5">
             <ul>
@@ -12,144 +13,121 @@
     @endif
 
     <div class="card mt-5">
-        <h5 class="card-header">Result</h5>
+        <h5 class="card-header">Hasil Diagnosa (Result)</h5>
         <div class="card-body">
+            {{-- Bagian 1: Info Sistem --}}
             <div class="mb-3">
                 <label for="nama_sistem" class="form-label">Nama Sistem</label>
                 <input type="text" name="nama_sistem" class="form-control" id="nama_sistem"
-                    value="{{ $diagnose_data['form1']['nama_sistem'] }}" readonly>
+                    value="{{ $diagnose_data['form1']['nama_sistem'] ?? '-' }}" readonly>
             </div>
 
             <div class="mb-3">
                 <label for="deskripsi_sistem" class="form-label">Deskripsi Sistem</label>
-                <textarea class="form-control" name="deskripsi_sistem" id="deskripsi_sistem" rows="3" readonly>{{ $diagnose_data['form1']['deskripsi_sistem'] }}</textarea>
+                <textarea class="form-control" name="deskripsi_sistem" id="deskripsi_sistem" rows="3" readonly>{{ $diagnose_data['form1']['deskripsi_sistem'] ?? '-' }}</textarea>
             </div>
 
-            <h5>Melalui input yang dimasukkan oleh user pada form sebelumnya berikut adalah prolehan nilai yang didapat</h5>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">Nama sistem terinput</th>
-                        <th scope="col">Nilai interdepenSistem</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if(isset($diagnose_data['form2']['poin_order']))
-                     @foreach ($diagnose_data['form2']['poin_order'] as $poin_order)
-                     @foreach ($poin_order['sistem'] as $nilai_sistem)
-            <tr>
-                <td>{{ $nilai_sistem }}</td>
-                <td>{{ $poin_order['poin'] }}</td>
-            </tr>
-        @endforeach
-    @endforeach
-@else
-    <tr>
-        <td colspan="2">Form 2 dilewati, tidak ada data interdependency.</td>
-    </tr>
-@endif
+            <hr>
 
-                </tbody>
-            </table>
-
-            <h4>Sistem yang terpilih dari hasil diatas adalah</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">Nama</th>
-                        @if (count($iiv) > 0)
-                            <th scope="col">Instansi</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (count($iiv) > 0)
-                        @foreach ($iiv as $k => $item)
-                            <tr>
-                                <td>
-                                    {{ $item->nama }}
-                                </td>
-                                <td>{{ $item->refInstansi->nama_instansi }}</td>
-                            </tr>
-                        @endforeach
-                    @else
-                        {{-- @foreach ($diagnose_data['form2']['poin_order'] as $poin_order)
-                            <tr>
-                                <td>{{ $poin_order['sistem'][0] }}</td>
-                            </tr>
-                        @break --}}
-                        @if ($diagnose_data['sistem_terpilih'] != null)
-                            @foreach ($diagnose_data['sistem_terpilih'] as $nama)
-                                <tr>
-                                    <td>{{ $nama }}</td>
-                                </tr>
+            {{-- Bagian 2: Skor Interdependensi --}}
+            <h5>Perolehan Nilai Interdependensi Sistem</h5>
+            <p class="text-muted small">Berdasarkan input form sebelumnya.</p>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Nama Sistem Terinput</th>
+                            <th scope="col">Nilai Poin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Cek apakah data ada dan berbentuk array --}}
+                        @if(isset($diagnose_data['form2']['poin_order']) && is_array($diagnose_data['form2']['poin_order']) && count($diagnose_data['form2']['poin_order']) > 0)
+                            
+                            {{-- Gunakan nama variabel $poin_item (bukan $poin_order) untuk menghindari konflik --}}
+                            @foreach ($diagnose_data['form2']['poin_order'] as $poin_item)
+                                @if(isset($poin_item['sistem']) && is_array($poin_item['sistem']))
+                                    @foreach ($poin_item['sistem'] as $nilai_sistem)
+                                        <tr>
+                                            <td>{{ $nilai_sistem }}</td>
+                                            {{-- Akses poin dari $poin_item --}}
+                                            <td>{{ $poin_item['poin'] ?? 0 }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             @endforeach
+                            
                         @else
                             <tr>
-                                <td>Belum bisa memberikan Rekomendasi</td>
+                                <td colspan="2" class="text-center">Tidak ada data poin interdependensi atau Form 2 dilewati.</td>
                             </tr>
                         @endif
-                    @endif
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
 
-            {{-- <h4>Sistem</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Nama</th>
-                        <th scope="col">Instansi</th>
-                        <th scope="col">Nilai interdepenSistem</th>
-                        @if (count($diagnose_data['form2']['poin_sistem']) > 1)
-                            <th scope="col">Berbanding</th>
-                        @elseif (count($diagnose_data['form2']['poin_sistem']) > 2)
-                            <th scope="col">Berbanding</th>
-                            <th scope="col">Berbanding</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($iiv as $k => $item)
+            <br>
+
+            {{-- Bagian 3: Sistem Rekomendasi (Hasil Akhir) --}}
+            <h4 class="text-primary">Rekomendasi Sistem Terpilih</h4>
+            <p>Sistem yang memiliki nilai keterhubungan paling tinggi:</p>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-primary">
                         <tr>
-                            <th scope="row">{{ $k + 1 }}</th>
-                            <td>{{ $item->nama }}</td>
-                            <td>{{ $item->refInstansi->nama_instansi }}</td>
-
-                            @foreach ($diagnose_data['form2']['poin_order'] as $poin_order)
-                                <td>{{ $poin_order['poin'] }}</td>
+                            <th scope="col">Nama Sistem</th>
+                            {{-- Tampilkan kolom Instansi hanya jika data IIV tersedia --}}
+                            @if (isset($iiv) && count($iiv) > 0)
+                                <th scope="col">Instansi</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Skenario 1: Data dari Database (IIV) --}}
+                        @if (isset($iiv) && count($iiv) > 0)
+                            @foreach ($iiv as $item)
+                                <tr>
+                                    <td><strong>{{ $item->nama }}</strong></td>
+                                    <td>{{ $item->refInstansi->nama_instansi ?? '-' }}</td>
+                                </tr>
+                            @endforeach
+                        
+                        {{-- Skenario 2: Data dari Session (Fallback) --}}
+                        @elseif (isset($diagnose_data['sistem_terpilih']) && is_array($diagnose_data['sistem_terpilih']) && count($diagnose_data['sistem_terpilih']) > 0)
+                            @foreach ($diagnose_data['sistem_terpilih'] as $nama)
+                                <tr>
+                                    <td><strong>{{ $nama }}</strong></td>
+                                </tr>
                             @endforeach
 
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table> --}}
+                        {{-- Skenario 3: Tidak ada data --}}
+                        @else
+                            <tr>
+                                <td colspan="2" class="text-center text-danger">
+                                    <em>Belum bisa memberikan rekomendasi (Data tidak cukup atau tidak ditemukan).</em>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
 
-            {{-- <p>[nama_sistem] - [nama_instansi] - [nilai_risiko] - [? deskripsi_interdepen] </p>
-
-            <ul>
-                @foreach ($iiv as $item)
-                    <li>
-                        {{ $item->nama }} - {{ $item->refInstansi->nama_instansi }} -
-                        {{ $item->refInstansi->nilai_risiko ?? 0 }}
-                    </li>
-                    @foreach ($item->interdepenSistemIIV as $item)
-                        <li>
-                            {{ $item->sistemElektronik->nama }} -
-                            {{ $item->sistemElektronik->refInstansi->nama_instansi }} -
-                            {{ $item->sistemElektronik->refInstansi->nilai_risiko ?? 0 }} -
-                            {{ $item->deskripsi_interdepen }}
-                        </li>
-                    @endforeach
-                @endforeach
-            </ul> --}}
-            <div class="row text-center">
+            <br>
+            
+            {{-- Tombol Aksi --}}
+            <div class="row text-center mt-4">
                 <div class="col">
-                    @if (count($iiv) > 0)
-                        <a href="{{ route('diagnose.form.result2') }}" class="btn btn-primary">Detail</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Kembali ke Dashboard</a>
+                    
+                    {{-- Tombol Detail hanya muncul jika ada hasil --}}
+                    @if ((isset($iiv) && count($iiv) > 0) || (isset($diagnose_data['sistem_terpilih']) && count($diagnose_data['sistem_terpilih']) > 0))
+                        <a href="{{ route('diagnose.form.result2') }}" class="btn btn-success">Lihat Detail Lanjut</a>
                     @endif
                 </div>
             </div>
-        </div>
+
+        </div>  
     </div>
 @endsection
