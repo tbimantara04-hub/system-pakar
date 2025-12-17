@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTables\InterdepenDataTable;
 use App\Models\Interdepen;
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
 
 class InterdepenController extends Controller
 {
@@ -30,11 +30,11 @@ class InterdepenController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validated([
+        $data = $request->validate([
             'ref_interdepen_id' => ['required', 'exists:ref_interdepen,id'],
-        'sistem_elektronik_id' => ['required', 'exists:sistem_elektronik,id'],
-        'sistem_iiv_id' => ['required', 'exists:sistem_iiv,id'],
-        'deskripsi_interdepen' => ['required', 'longtext'],
+            'sistem_elektronik_id' => ['required', 'exists:sistem_elektronik,id'],
+            'sistem_iiv_id' => ['required', 'exists:sistem_iiv,id'],
+            'deskripsi_interdepen' => ['required', 'longtext'],
         ]);
 
         Interdepen::create($data);
