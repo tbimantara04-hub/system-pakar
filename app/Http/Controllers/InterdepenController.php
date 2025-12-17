@@ -22,7 +22,9 @@ class InterdepenController extends Controller
     public function create()
     {
         $interdepen = new Interdepen();
-        return view('pages.interdepen.form', compact('interdepen'));
+        $refInterdepens = \App\Models\RefInterdepen::all();
+        $iivs = \App\Models\IIV::all();
+        return view('pages.interdepen.form', compact('interdepen', 'refInterdepens', 'iivs'));
     }
 
     /**
@@ -32,9 +34,9 @@ class InterdepenController extends Controller
     {
         $data = $request->validate([
             'ref_interdepen_id' => ['required', 'exists:ref_interdepen,id'],
-            'sistem_elektronik_id' => ['required', 'exists:sistem_elektronik,id'],
-            'sistem_iiv_id' => ['required', 'exists:sistem_iiv,id'],
-            'deskripsi_interdepen' => ['required', 'longtext'],
+            'sistem_elektronik_id' => ['required', 'exists:iiv,id'], // Fixed table name
+            'sistem_iiv_id' => ['required', 'exists:iiv,id'], // Fixed table name
+            'deskripsi_interdepen' => ['required', 'string'],
         ]);
 
         Interdepen::create($data);
@@ -56,7 +58,9 @@ class InterdepenController extends Controller
      */
     public function edit(interdepen $interdepen)
     {
-        return view('pages.interdepen.form', compact('interdepen'));
+        $refInterdepens = \App\Models\RefInterdepen::all();
+        $iivs = \App\Models\IIV::all();
+        return view('pages.interdepen.form', compact('interdepen', 'refInterdepens', 'iivs'));
     }
 
     /**

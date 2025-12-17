@@ -4,7 +4,6 @@
     $method = $interdepen->exists ? 'PUT' : 'POST';
 @endphp
 
-
 @extends('layouts.dashboard.main')
 
 @section('content')
@@ -29,34 +28,52 @@
                     <form action="{{ $route }}" method="POST">
                         @csrf
                         @method($method)
+                        
+                        {{-- REF INTERDEPEN (JENIS HUBUNGAN) --}}
                         <div class="form-group">
-                            <label class="form-label" for="ref_interdepen_id">Ref Interdepen</label>
-                            <input type="text" class="form-control" id="ref_interdepen_id" name="ref_interdepen_id"
-                                value="{{ old('ref_interdepen_id') ?? $interdepen->ref_interdepen_id }}"
-                                placeholder="Nama IIV">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="sistem_elektronik_id">Deskripsi</label>
-                            <input type="text" class="form-control" id="sistem_elektronik_id" name="sistem_elektronik_id"
-                                value="{{ old('sistem_elektronik_id') ?? $interdepen->sistem_elektronik_id }}"
-                                placeholder="Deskripsi Sistem">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="ref_instansi_id">Instansi</label>
-                            <select class="form-control js-example-basic-single" name="ref_instansi_id">
-                                <option value="">Instansi</option>
-                                @foreach (App\Models\RefInstansi::all() as $instansi)
-                                    <option value="{{ $instansi->id }}" @selected($instansi->id === (old('ref_instansi_id') ?? $interdepen->ref_instansi_id))>
-                                        {{ $instansi->nama_instansi }}
+                            <label class="form-label" for="ref_interdepen_id">Jenis Interdepen</label>
+                            <select class="form-control js-example-basic-single" name="ref_interdepen_id" id="ref_interdepen_id">
+                                <option value="">Pilih Jenis Interdepen</option>
+                                @foreach ($refInterdepens as $ref)
+                                    <option value="{{ $ref->id }}" @selected($ref->id == (old('ref_interdepen_id') ?? $interdepen->ref_interdepen_id))>
+                                        {{ $ref->label }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- SISTEM ELEKTRONIK (ASAL) --}}
                         <div class="form-group">
-                            <label class="form-label" for="nilai_risiko">Nilai Risiko</label>
-                            <input type="text" class="form-control" id="nilai_risiko" name="nilai_risiko"
-                                value="{{ old('nilai_risiko') ?? $interdepen->nilai_risiko }}" placeholder="Nilai Risiko">
+                            <label class="form-label" for="sistem_elektronik_id">Sistem Elektronik (Asal)</label>
+                            <select class="form-control js-example-basic-single" name="sistem_elektronik_id" id="sistem_elektronik_id">
+                                <option value="">Pilih Sistem Elektronik</option>
+                                @foreach ($iivs as $iiv)
+                                    <option value="{{ $iiv->id }}" @selected($iiv->id == (old('sistem_elektronik_id') ?? $interdepen->sistem_elektronik_id))>
+                                        {{ $iiv->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
+
+                        {{-- SISTEM IIV (TUJUAN) --}}
+                        <div class="form-group">
+                            <label class="form-label" for="sistem_iiv_id">Sistem IIV (Tujuan)</label>
+                            <select class="form-control js-example-basic-single" name="sistem_iiv_id" id="sistem_iiv_id">
+                                <option value="">Pilih Sistem Tujuan</option>
+                                @foreach ($iivs as $iiv)
+                                    <option value="{{ $iiv->id }}" @selected($iiv->id == (old('sistem_iiv_id') ?? $interdepen->sistem_iiv_id))>
+                                        {{ $iiv->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- DESKRIPSI --}}
+                        <div class="form-group">
+                            <label class="form-label" for="deskripsi_interdepen">Deskripsi</label>
+                            <textarea class="form-control" id="deskripsi_interdepen" name="deskripsi_interdepen" rows="3" placeholder="Deskripsi Keterhubungan">{{ old('deskripsi_interdepen') ?? $interdepen->deskripsi_interdepen }}</textarea>
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>
@@ -73,7 +90,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.js-example-basic-single').select2();
+            $('.js-example-basic-single').select2({
+                width: '100%'
+            });
         });
     </script>
 @endpush
