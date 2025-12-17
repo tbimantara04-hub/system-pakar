@@ -1,11 +1,11 @@
 <nav class="navbar navbar-expand justify-content-between fixed-top">
-    <a class="navbar-brand mb-0 h1 d-none d-md-block" href="index.html">
+    <a class="navbar-brand mb-0 h1 d-none d-md-block" href="{{ route('dashboard') }}">
         {{-- <img src="./demo/img/logo.png" class="navbar-brand-image d-inline-block align-top mr-2" alt=""> --}}
         Dashboard Sistem Pendukung Keputusan Perlindungan Infrastruktur Informasi Vital
     </a>
 
     <div class="d-flex flex-1 d-block d-md-none">
-        <a href="#" class="sidebar-toggle ml-3">
+        <a href="javascript:void(0);" class="sidebar-toggle ml-3">
             <i data-feather="menu"></i>
         </a>
     </div>
@@ -13,7 +13,7 @@
     <ul class="navbar-nav d-flex justify-content-end mr-2">
         <!-- Notifications -->
         <li class="nav-item dropdown">
-            <a class="nav-link avatar-with-name" id="navbarDropdownMenuLink" data-toggle="dropdown" href="#">
+            <a class="nav-link avatar-with-name" id="navbarDropdownMenuLink" data-toggle="dropdown" href="javascript:void(0);">
                 <img src="https://s3.amazonaws.com/uifaces/faces/twitter/jsa/128.jpg" class="d-inline-block align-top"
                     alt="">
             </a>
