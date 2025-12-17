@@ -61,6 +61,11 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
+                        <a href="{{ route('ref-dampak.index') }}" class="sidebar-nav-link">
+                            <span class="sidebar-nav-name">Dampak</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
                         <a href="{{ route('ref-interdepen.index') }}" class="sidebar-nav-link">
                             <span class="sidebar-nav-name">Interdepen</span>
                         </a>
