@@ -43,7 +43,7 @@ class DiagnoseFormController extends Controller
                 $modelsData[] = [
                     'modelName' => 'ref_tujuan',
                     'variableName' => 'ref_tujuan_id',
-                    'labelColumn' => 'nama_tujuan',
+                    'labelColumn' => 'tujuan_keamanan', // Fixed column name
                     'rows' => RefTujuan::all()
                 ];
             }
@@ -53,7 +53,7 @@ class DiagnoseFormController extends Controller
                 $modelsData[] = [
                     'modelName' => 'ref_dampak',
                     'variableName' => 'ref_dampak_id',
-                    'labelColumn' => 'nama_dampak',
+                    'labelColumn' => 'indikator_dampak', // Fixed column name
                     'rows' => RefDampak::all()
                 ];
             }
