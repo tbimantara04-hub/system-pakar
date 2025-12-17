@@ -116,11 +116,15 @@ class DiagnoseFormController extends Controller
     // ==========================================================
     public function form3()
     {
-        // Asumsi Form 3 membutuhkan data Risiko, Kendali, dll.
-        // Data Risiko dan Kendali biasanya diisi, bukan dipilih, tapi kita siapkan datanya jika ada referensi
+        // Form 3 membutuhkan data dari form sebelumnya untuk ditampilkan
+        $diagnose_data = [
+            'form1' => session('form1'),
+            'form2' => session('form2'),
+        ];
         
         return view('diagnose.form.form3', [
-            'data_form3' => session('form3')
+            'data_form3' => session('form3'),
+            'diagnose_data' => $diagnose_data
         ]);
     }
 
